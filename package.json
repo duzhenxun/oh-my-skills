@@ -1,0 +1,77 @@
+{
+  "name": "oh-my-skills",
+  "version": "1.0.1",
+  "description": "Local dashboard and CLI for managing AI agent skills across tools, projects, SkillHub, and Git repositories.",
+  "type": "module",
+  "bin": {
+    "oh-my-skills": "bin/oh-my-skills.mjs",
+    "oms": "bin/oh-my-skills.mjs"
+  },
+  "files": [
+    ".next",
+    "bin",
+    "docs",
+    "skills",
+    "public",
+    "src",
+    "next.config.mjs",
+    "package.json",
+    "README.md",
+    "README.en.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "dev": "next dev -p 2525",
+    "build": "next build",
+    "start": "next start -p 2525",
+    "serve": "node bin/oh-my-skills.mjs start",
+    "stop": "node bin/oh-my-skills.mjs stop",
+    "restart": "node bin/oh-my-skills.mjs restart",
+    "lint": "next lint",
+    "typecheck": "rm -f tsconfig.tsbuildinfo && tsc --noEmit",
+    "prepack": "npm run build && rm -rf .next/cache"
+  },
+  "keywords": [
+    "oh-my-skills",
+    "skill-management",
+    "skillhub",
+    "agents",
+    "skills",
+    "agent-skills",
+    "codex",
+    "claude",
+    "cursor"
+  ],
+  "homepage": "https://github.com/duzhenxun/oh-my-skills#readme",
+  "bugs": {
+    "url": "https://github.com/duzhenxun/oh-my-skills/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/duzhenxun/oh-my-skills.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "Zhenxun Du <duzhenxun@126.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@uiw/react-codemirror": "^4.25.9",
+    "gray-matter": "^4.0.3",
+    "lucide-react": "^0.511.0",
+    "next": "^15.3.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "eslint": "^9.27.0",
+    "eslint-config-next": "^15.3.2",
+    "typescript": "^5.8.3"
+  }
+}
