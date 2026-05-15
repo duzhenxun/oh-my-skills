@@ -4,15 +4,16 @@
 
 Oh My Skills 是一个本地运行的 AI Agent Skill 管理工具，用来统一发现、查看、编辑、安装、复制、启用、禁用和删除不同工具里的 skills。它面向经常同时使用 Agents、Codex、Claude、Cursor、OpenCode、Trae 等工具的用户，目标是把分散在各处的 `SKILL.md` 和规则文件收拢到一个可视化面板里管理。
 
-```bash
-npx oh-my-skills@latest
-```
-
-默认会优先启动在 `2525` 端口。需要自定义端口时：
+推荐全局安装后使用：
 
 ```bash
-npx oh-my-skills@latest --port 2526
+npm i -g oh-my-skills
+oms
+oms --help
+oh-my-skills --help
 ```
+
+默认会优先启动在 `2525` 端口，`oms` 是 `oh-my-skills` 的简写命令。
 
 ## 产品功能展示
 

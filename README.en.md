@@ -4,15 +4,16 @@
 
 Oh My Skills is a local AI Agent skill management dashboard. It helps you discover, inspect, edit, install, copy, enable, disable, and delete skills across tools such as Agents, Codex, Claude, Cursor, OpenCode, and Trae. The goal is to bring scattered `SKILL.md` files and rule folders into one visual workspace.
 
-```bash
-npx oh-my-skills@latest
-```
-
-By default, the CLI tries port `2525` first. To use a custom port:
+Recommended global install:
 
 ```bash
-npx oh-my-skills@latest --port 2526
+npm i -g oh-my-skills
+oms
+oms --help
+oh-my-skills --help
 ```
+
+By default, the CLI tries port `2525` first. `oms` is the short alias for `oh-my-skills`.
 
 ## Product Tour
 
