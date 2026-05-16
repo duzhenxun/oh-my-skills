@@ -4,13 +4,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 export type Language = "zh" | "en";
 
-export function detectSystemLanguage(): Language {
-  if (typeof navigator === "undefined") return "en";
-  const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
-  return languages.some((item) => item.toLowerCase().startsWith("zh")) ? "zh" : "en";
-}
-
-export const defaultLanguage: Language = "en";
+export const defaultLanguage: Language = "zh";
 
 export const LanguageContext = createContext<{ language: Language; setLanguage?: (language: Language) => void }>({
   language: defaultLanguage,
@@ -19,7 +13,7 @@ export const LanguageContext = createContext<{ language: Language; setLanguage?:
 export function readStoredLanguage(): Language {
   if (typeof window === "undefined") return defaultLanguage;
   const value = window.localStorage.getItem("oms-language");
-  return value === "en" || value === "zh" ? value : detectSystemLanguage();
+  return value === "en" || value === "zh" ? value : defaultLanguage;
 }
 
 export function useLanguage() {

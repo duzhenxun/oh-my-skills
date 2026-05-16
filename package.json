@@ -1,6 +1,6 @@
 {
   "name": "oh-my-skills",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Local dashboard and CLI for managing AI agent skills across tools, projects, SkillHub, and Git repositories.",
   "type": "module",
   "bin": {
@@ -25,7 +25,7 @@
     "stop": "node bin/oh-my-skills.mjs stop",
     "restart": "node bin/oh-my-skills.mjs restart",
     "lint": "next lint",
-    "typecheck": "rm -f tsconfig.tsbuildinfo && tsc --noEmit",
+    "typecheck": "rimraf tsconfig.tsbuildinfo && tsc --noEmit",
     "prepack": "npm run build && rimraf .next/cache"
   },
   "keywords": [

@@ -118,7 +118,12 @@ export async function listSkills() {
   for (const project of projects) {
     batches.push(...await Promise.all(projectLocations(project.path, project.name).map(scanLocation)));
   }
-  return batches.flat().sort((a, b) => a.title.localeCompare(b.title));
+  const seen = new Set<string>();
+  return batches.flat().filter((skill) => {
+    if (seen.has(skill.id)) return false;
+    seen.add(skill.id);
+    return true;
+  }).sort((a, b) => a.title.localeCompare(b.title));
 }
 
 export async function getSkill(id: string): Promise<SkillRecord | null> {

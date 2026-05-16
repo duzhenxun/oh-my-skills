@@ -9,6 +9,15 @@ import packageInfo from "../../package.json";
 
 type Skin = "luma" | "paper" | "graphite" | "mint";
 
+const defaultSkin: Skin = "luma";
+const skins: Skin[] = ["luma", "paper", "graphite", "mint"];
+
+function readStoredSkin(): Skin {
+  if (typeof window === "undefined") return defaultSkin;
+  const value = window.localStorage.getItem("oms-skin");
+  return skins.includes(value as Skin) ? (value as Skin) : defaultSkin;
+}
+
 const labels = {
   zh: {
     subtitle: "Agent 技能管理",
@@ -17,16 +26,16 @@ const labels = {
     projects: "项目管理",
     language: "语言",
     skin: "风格",
-    collapse: "收起侧栏",
-    expand: "展开侧栏",
+    collapse: "收起侧边栏",
+    expand: "展开侧边栏",
     fullscreen: "进入全屏",
     exitFullscreen: "退出全屏",
     openSource: "开源项目",
     currentVersion: "版本",
-    luma: "光域",
-    paper: "雪白",
+    luma: "晨光",
+    paper: "纸张",
     graphite: "石墨夜",
-    mint: "青瓷",
+    mint: "薄荷",
   },
   en: {
     subtitle: "Agent Skill Manager",
@@ -50,32 +59,14 @@ const labels = {
 
 export function Frame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("oms-sidebar-collapsed") === "1";
+  });
   const [fullscreen, setFullscreen] = useState(false);
-  const [language, setLanguage] = useState<Language>("en");
-  const [skin, setSkin] = useState<Skin>("luma");
+  const [language, setLanguage] = useState<Language>(() => readStoredLanguage());
+  const [skin, setSkin] = useState<Skin>(() => readStoredSkin());
   const t = labels[language];
-  const languageOptions = [
-    { value: "zh" as const, label: "中文" },
-    { value: "en" as const, label: "English" },
-  ];
-  const skinOptions = [
-    { value: "luma" as const, label: t.luma },
-    { value: "paper" as const, label: t.paper },
-    { value: "graphite" as const, label: t.graphite },
-    { value: "mint" as const, label: t.mint },
-  ];
-  const items = [
-    { href: "/", label: t.all, icon: Grid2X2 },
-    { href: "/install", label: t.install, icon: Download },
-    { href: "/projects", label: t.projects, icon: Folder },
-  ];
-
-  useEffect(() => {
-    setCollapsed(localStorage.getItem("oms-sidebar-collapsed") === "1");
-    setLanguage(readStoredLanguage());
-    setSkin((localStorage.getItem("oms-skin") as Skin) || "luma");
-  }, []);
 
   useEffect(() => {
     document.body.dataset.skin = skin;
@@ -111,16 +102,20 @@ export function Frame({ children }: { children: React.ReactNode }) {
               <p>{t.subtitle}</p>
             </div>
             <div className="sidebar-icons">
-              <button title={collapsed ? t.expand : t.collapse} onClick={() => setCollapsed(!collapsed)}>
-                {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-              </button>
               <button title={fullscreen ? t.exitFullscreen : t.fullscreen} onClick={toggleFullscreen}>
-                {fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                {fullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+              </button>
+              <button title={collapsed ? t.expand : t.collapse} onClick={() => setCollapsed(!collapsed)}>
+                {collapsed ? <PanelLeftOpen size={14} /> : <PanelLeftClose size={14} />}
               </button>
             </div>
           </div>
           <nav className="nav">
-            {items.map((item) => {
+            {[
+              { href: "/", label: t.all, icon: Grid2X2 },
+              { href: "/install", label: t.install, icon: Download },
+              { href: "/projects", label: t.projects, icon: Folder },
+            ].map((item) => {
               const Icon = item.icon;
               return (
                 <Link key={item.href} href={item.href} className={pathname === item.href ? "active" : ""}>
@@ -131,8 +126,26 @@ export function Frame({ children }: { children: React.ReactNode }) {
             })}
           </nav>
           <div className="sidebar-settings">
-            <OptionMenu label={t.language} value={language} options={languageOptions} onChange={setLanguage} />
-            <OptionMenu label={t.skin} value={skin} options={skinOptions} onChange={setSkin} />
+            <OptionMenu
+              label={t.language}
+              value={language}
+              options={[
+                { value: "zh" as const, label: "中文" },
+                { value: "en" as const, label: "English" },
+              ]}
+              onChange={setLanguage}
+            />
+            <OptionMenu
+              label={t.skin}
+              value={skin}
+              options={[
+                { value: "luma" as const, label: t.luma },
+                { value: "paper" as const, label: t.paper },
+                { value: "graphite" as const, label: t.graphite },
+                { value: "mint" as const, label: t.mint },
+              ]}
+              onChange={setSkin}
+            />
             <a className="sidebar-version" href="https://github.com/duzhenxun/oh-my-skills" target="_blank" rel="noreferrer">
               <span className="version-source">
                 <Github size={20} />
