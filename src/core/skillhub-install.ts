@@ -1,11 +1,8 @@
-import { execFile } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { promisify } from "node:util";
+import AdmZip from "adm-zip";
 import { copyFolderToDestination } from "./writer";
-
-const execFileAsync = promisify(execFile);
 
 function assertSafeZipEntries(entries: string[]) {
   for (const entry of entries) {
@@ -43,9 +40,10 @@ export async function installSkillHubPackage(slug: string, name: string, destina
     const response = await fetch(`https://api.skillhub.cn/api/v1/download?slug=${encodeURIComponent(slug)}`);
     if (!response.ok) throw new Error(`SkillHub download failed (${response.status})`);
     await fs.writeFile(zipPath, Buffer.from(await response.arrayBuffer()));
-    const { stdout } = await execFileAsync("unzip", ["-Z", "-1", zipPath]);
-    assertSafeZipEntries(stdout.split(/\r?\n/).filter(Boolean));
-    await execFileAsync("unzip", ["-q", zipPath, "-d", extractDir]);
+    const zip = new AdmZip(zipPath);
+    const entries = zip.getEntries().map((e: { entryName: string }) => e.entryName);
+    assertSafeZipEntries(entries);
+    zip.extractAllTo(extractDir, true);
     const skillRoot = await findExtractedSkillRoot(extractDir);
     return await copyFolderToDestination(skillRoot, destinationKey, name || slug, projectPath);
   } finally {
