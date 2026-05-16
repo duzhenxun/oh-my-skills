@@ -1,6 +1,6 @@
 {
   "name": "oh-my-skills",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Local dashboard and CLI for managing AI agent skills across tools, projects, SkillHub, and Git repositories.",
   "type": "module",
   "bin": {
@@ -10,10 +10,7 @@
   "files": [
     ".next",
     "bin",
-    "docs",
     "skills",
-    "public",
-    "src",
     "next.config.mjs",
     "package.json",
     "README.md",
@@ -29,7 +26,7 @@
     "restart": "node bin/oh-my-skills.mjs restart",
     "lint": "next lint",
     "typecheck": "rm -f tsconfig.tsbuildinfo && tsc --noEmit",
-    "prepack": "npm run build && rm -rf .next/cache"
+    "prepack": "npm run build && rimraf .next/cache"
   },
   "keywords": [
     "oh-my-skills",
@@ -68,11 +65,13 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
     "@types/node": "^22.15.18",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.3.2",
+    "rimraf": "^6.1.3",
     "typescript": "^5.8.3"
   }
 }
