@@ -45,7 +45,7 @@ export async function installSkillHubPackage(slug: string, name: string, destina
     assertSafeZipEntries(entries);
     zip.extractAllTo(extractDir, true);
     const skillRoot = await findExtractedSkillRoot(extractDir);
-    return await copyFolderToDestination(skillRoot, destinationKey, name || slug, projectPath);
+    return await copyFolderToDestination(skillRoot, destinationKey, name || slug, projectPath, { uniqueName: true });
   } finally {
     await fs.rm(tempDir, { recursive: true, force: true }).catch(() => undefined);
   }

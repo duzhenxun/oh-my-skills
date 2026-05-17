@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Frame } from "@/ui/Frame";
 import { useLanguage } from "@/ui/i18n";
@@ -15,12 +15,25 @@ const installTargets = [
   { key: "global-codex", label: "Codex Global", hint: "~/.codex/skills/" },
 ];
 
+const hubCategories = [
+  { key: "", zh: "全部", en: "All", tone: "blue" },
+  { key: "ai-intelligence", zh: "AI 智能", en: "AI Intelligence", tone: "black" },
+  { key: "developer-tools", zh: "开发工具", en: "Developer Tools", tone: "green" },
+  { key: "productivity", zh: "效率提升", en: "Productivity", tone: "amber" },
+  { key: "data-analysis", zh: "数据分析", en: "Data Analysis", tone: "violet" },
+  { key: "content-creation", zh: "内容创作", en: "Content Creation", tone: "pink" },
+  { key: "security-compliance", zh: "安全合规", en: "Security", tone: "red" },
+  { key: "communication-collaboration", zh: "通讯协作", en: "Collaboration", tone: "teal" },
+];
+
+const hubPageSize = 24;
+
 const text = {
   zh: {
-    title: "安装技能", hub: "技能库", repo: "Git 仓库", create: "手动创建", searchPlaceholder: "输入关键词搜索 SkillHub", searching: "搜索中...", search: "搜索", hubHint: "关键词会搜索 SkillHub；点击结果后选择安装位置。", installed: "已安装", notInstalled: "未安装", author: "作者", source: "来源", downloads: "下载", stars: "收藏", viewInstalled: "查看安装信息", viewInstall: "点击查看并安装", repoPlaceholder: "Git 仓库 URL", processing: "处理中...", fetchList: "拉取列表", skillName: "技能名称", skillContent: "SKILL.md 内容", creating: "创建中...", close: "关闭", installTo: "安装到：", installing: "安装中...", install: "安装", destination: "安装到", selectedHub: "已选择 SkillHub 技能", reinstallWarning: (name: string) => `本机已经存在匹配的 skill：${name}。如需重新安装，请先到“全部技能”里手动删除原 skill。`, createSuccess: "技能创建成功", installSuccess: "安装成功", copyExisting: "复制已有技能", backDetail: "返回详情", copyHint: "选择一个目标目录，把这个技能复制过去。", currentPath: "当前路径：", copyTo: "复制到：", copying: "复制中...", copy: "复制", copySuccess: "复制成功", failed: "操作失败",
+    title: "安装技能", hub: "技能库", repo: "Git 仓库", create: "手动创建", searchPlaceholder: "输入关键词搜索 SkillHub", searching: "搜索中...", loadingMore: "正在加载更多...", noMore: "已经到底了", search: "搜索", installed: "已安装", notInstalled: "未安装", author: "作者", source: "来源", downloads: "下载", stars: "收藏", viewInstalled: "查看安装信息", viewInstall: "点击查看并安装", repoPlaceholder: "Git 仓库 URL", processing: "处理中...", fetchList: "拉取列表", skillName: "技能名称", skillContent: "SKILL.md 内容", creating: "创建中...", close: "关闭", installTo: "安装到：", installing: "安装中...", install: "安装", destination: "安装到", selectedHub: "已选择 SkillHub 技能", reinstallWarning: (name: string) => `本机已经存在匹配的 skill：${name}。如需重新安装，请先到“全部技能”里手动删除原 skill。`, createSuccess: "技能创建成功", installSuccess: "安装成功", copyExisting: "复制已有技能", backDetail: "返回详情", copyHint: "选择一个目标目录，把这个技能复制过去。", currentPath: "当前路径：", copyTo: "复制到：", copying: "复制中...", copy: "复制", copySuccess: "复制成功", failed: "操作失败",
   },
   en: {
-    title: "Install Skills", hub: "SkillHub", repo: "Git Repository", create: "Create Manually", searchPlaceholder: "Search SkillHub", searching: "Searching...", search: "Search", hubHint: "Search SkillHub by keyword, then choose a destination after selecting a result.", installed: "Installed", notInstalled: "Not Installed", author: "Author", source: "Source", downloads: "Downloads", stars: "Stars", viewInstalled: "View install details", viewInstall: "View and install", repoPlaceholder: "Git repository URL", processing: "Processing...", fetchList: "Fetch list", skillName: "Skill name", skillContent: "SKILL.md content", creating: "Creating...", close: "Close", installTo: "Install to:", installing: "Installing...", install: "Install", destination: "Install to", selectedHub: "Selected SkillHub skill", reinstallWarning: (name: string) => `A matching local skill already exists: ${name}. To reinstall it, delete the original skill manually from All Skills first.`, createSuccess: "Skill created", installSuccess: "Installed successfully", copyExisting: "Copy existing skill", backDetail: "Back to details", copyHint: "Choose a destination and copy this skill there.", currentPath: "Current path: ", copyTo: "Copy to:", copying: "Copying...", copy: "Copy", copySuccess: "Copied successfully", failed: "Action failed",
+    title: "Install Skills", hub: "SkillHub", repo: "Git Repository", create: "Create Manually", searchPlaceholder: "Search SkillHub", searching: "Searching...", loadingMore: "Loading more...", noMore: "No more results", search: "Search", installed: "Installed", notInstalled: "Not Installed", author: "Author", source: "Source", downloads: "Downloads", stars: "Stars", viewInstalled: "View install details", viewInstall: "View and install", repoPlaceholder: "Git repository URL", processing: "Processing...", fetchList: "Fetch list", skillName: "Skill name", skillContent: "SKILL.md content", creating: "Creating...", close: "Close", installTo: "Install to:", installing: "Installing...", install: "Install", destination: "Install to", selectedHub: "Selected SkillHub skill", reinstallWarning: (name: string) => `A matching local skill already exists: ${name}. To reinstall it, delete the original skill manually from All Skills first.`, createSuccess: "Skill created", installSuccess: "Installed successfully", copyExisting: "Copy existing skill", backDetail: "Back to details", copyHint: "Choose a destination and copy this skill there.", currentPath: "Current path: ", copyTo: "Copy to:", copying: "Copying...", copy: "Copy", copySuccess: "Copied successfully", failed: "Action failed",
   },
 };
 
@@ -29,7 +42,10 @@ export default function InstallPage() {
   const t = text[language];
   const [tab, setTab] = useState<"hub" | "create" | "repo">("hub");
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("");
   const [results, setResults] = useState<HubSkill[]>([]);
+  const [hubPage, setHubPage] = useState(1);
+  const [hubHasMore, setHubHasMore] = useState(true);
   const [selected, setSelected] = useState<HubSkill | null>(null);
   const [copySkill, setCopySkill] = useState<SkillRecord | null>(null);
   const [destination, setDestination] = useState("global-agents");
@@ -39,6 +55,7 @@ export default function InstallPage() {
   const [repoSkills, setRepoSkills] = useState<string[]>([]);
   const [busyAction, setBusyAction] = useState("");
   const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const loadingMoreRef = useRef(false);
 
   function showNotice(type: "success" | "error", textValue: string) {
     setNotice({ type, text: textValue });
@@ -48,7 +65,7 @@ export default function InstallPage() {
   useEffect(() => {
     const copyId = new URLSearchParams(window.location.search).get("copy") || "";
     if (!copyId) {
-      searchHub("");
+      searchHub("", "", 1);
       return;
     }
     fetch(`/api/install/copy?id=${encodeURIComponent(copyId)}`).then((response) => response.json()).then((json) => {
@@ -57,19 +74,42 @@ export default function InstallPage() {
     }).catch((error) => showNotice("error", String(error)));
   }, []);
 
-  async function searchHub(nextQuery = query) {
-    setBusyAction("search");
+  async function searchHub(nextQuery = query, nextCategory = category, nextPage = 1) {
+    const append = nextPage > 1;
+    if (append && (!hubHasMore || loadingMoreRef.current)) return;
+    loadingMoreRef.current = true;
+    setBusyAction(append ? "load-more" : "search");
     try {
-      const response = await fetch("/api/install/hub-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: nextQuery }) });
+      const response = await fetch("/api/install/hub-search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: nextQuery, category: nextCategory, page: nextPage, pageSize: hubPageSize }) });
       const json = await response.json();
       if (!response.ok) throw new Error(json.error || t.failed);
-      setResults(json.skills || []);
+      setResults((current) => append ? [...current, ...(json.skills || [])] : (json.skills || []));
+      setHubPage(Number(json.page) || nextPage);
+      setHubHasMore(Boolean(json.hasMore));
     } catch (error) {
       showNotice("error", error instanceof Error ? error.message : t.failed);
     } finally {
+      loadingMoreRef.current = false;
       setBusyAction("");
     }
   }
+
+  function selectCategory(nextCategory: string) {
+    setCategory(nextCategory);
+    setHubPage(1);
+    setHubHasMore(true);
+    searchHub(query, nextCategory, 1);
+  }
+
+  useEffect(() => {
+    function onScroll() {
+      if (tab !== "hub" || !hubHasMore || loadingMoreRef.current || busyAction) return;
+      const nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 360;
+      if (nearBottom) searchHub(query, category, hubPage + 1);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [tab, query, category, hubPage, hubHasMore, busyAction]);
 
   async function installHubSelection() {
     if (!selected) return;
@@ -149,10 +189,13 @@ export default function InstallPage() {
       </div>
       {tab === "hub" && <>
         <section className="card" style={{ padding: 28 }}>
-          <form className="row" onSubmit={(event) => { event.preventDefault(); searchHub(); }}><input className="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.searchPlaceholder} /><button className="btn" type="submit" disabled={busyAction !== ""}>{busyAction === "search" ? t.searching : t.search}</button></form>
-          <p className="summary">{t.hubHint}</p>
+          <form className="row" onSubmit={(event) => { event.preventDefault(); setHubPage(1); setHubHasMore(true); searchHub(query, category, 1); }}><input className="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t.searchPlaceholder} /><button className="btn" type="submit" disabled={busyAction !== ""}>{busyAction === "search" ? t.searching : t.search}</button></form>
+          <div className="hub-category-grid">
+            {hubCategories.map((item) => <button key={item.key || "all"} type="button" className={`hub-category tone-${item.tone} ${category === item.key ? "active" : ""}`} onClick={() => selectCategory(item.key)} disabled={busyAction !== ""}><span>{language === "zh" ? item.zh : item.en}</span></button>)}
+          </div>
         </section>
         <section className="card install-results">{results.map((item) => <button key={item.id} className={`hub-result ${item.installed ? "is-installed" : ""}`} onClick={() => setSelected(item)}><div><div className="skill-title"><h3>{item.name}</h3><span className={`badge ${item.installed ? "green" : ""}`}>{item.installed ? t.installed : t.notInstalled}</span>{item.owner && <span className="badge">{t.author} {item.owner}</span>}{item.source && <span className="badge">{t.source} {item.source}</span>}{item.downloads !== undefined && <span className="badge">{t.downloads} {item.downloads}</span>}{item.stars !== undefined && <span className="badge">{t.stars} {item.stars}</span>}</div><p className="summary">{item.description || item.url}</p></div><span className="hub-result-action">{item.installed ? t.viewInstalled : t.viewInstall}</span></button>)}</section>
+        {results.length > 0 && <div className="hub-load-state">{busyAction === "load-more" ? t.loadingMore : hubHasMore ? "" : t.noMore}</div>}
       </>}
       {tab === "repo" && <section className="card" style={{ padding: 28 }}><div className="row"><input className="search" value={repoUrl} onChange={(event) => setRepoUrl(event.target.value)} placeholder={t.repoPlaceholder} /><button className="btn" onClick={inspectRepo} disabled={busyAction !== ""}>{busyAction === "repo" ? t.processing : t.fetchList}</button></div><DestinationPicker value={destination} onChange={setDestination} label={t.destination} /><div className="segmented" style={{ marginTop: 18 }}>{repoSkills.map((skill) => <button key={skill} className="pill" onClick={() => installRepoSkill(skill)}>{skill}</button>)}</div></section>}
       {tab === "create" && <section className="card form" style={{ padding: 28 }}><label className="field"><span>{t.skillName}</span><input value={name} onChange={(event) => setName(event.target.value)} /></label><DestinationPicker value={destination} onChange={setDestination} label={t.destination} /><label className="field"><span>{t.skillContent}</span><textarea rows={12} value={raw} onChange={(event) => setRaw(event.target.value)} /></label><button className="btn" onClick={createManual} disabled={busyAction !== ""}>{busyAction === "manual" ? t.creating : t.create}</button></section>}
