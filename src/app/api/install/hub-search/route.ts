@@ -5,7 +5,14 @@ import { listSkills } from "@/core/reader";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const skills = await searchSkillHub(String(body.query || ""));
+  const result = await searchSkillHub(String(body.query || ""), {
+    category: typeof body.category === "string" ? body.category : "",
+    page: Number(body.page) || 1,
+    pageSize: Number(body.pageSize) || 24,
+  });
   const localSkills = await listSkills();
-  return NextResponse.json({ skills: markInstalledHubSkills(skills, localSkills) });
+  return NextResponse.json({
+    ...result,
+    skills: markInstalledHubSkills(result.skills, localSkills),
+  });
 }

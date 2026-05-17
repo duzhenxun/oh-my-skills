@@ -45,11 +45,25 @@ async function ensureVacant(targetPath: string) {
   }
 }
 
-export async function copyFolderToDestination(sourceFolder: string, destinationKey: string, name: string, projectPath?: string) {
+async function nextVacantFolder(root: string, name: string) {
+  const safeName = slugifySkillName(name);
+  let targetFolder = path.join(root, safeName);
+  for (let index = 2; ; index += 1) {
+    try {
+      await fs.access(targetFolder);
+      targetFolder = path.join(root, `${safeName}-${index}`);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return targetFolder;
+      throw error;
+    }
+  }
+}
+
+export async function copyFolderToDestination(sourceFolder: string, destinationKey: string, name: string, projectPath?: string, options: { uniqueName?: boolean } = {}) {
   const destination = resolveDestination(destinationKey, projectPath);
   if (!destination) throw new Error("Invalid destination");
-  const targetFolder = path.join(destination.resolvedRoot, slugifySkillName(name));
-  await ensureVacant(targetFolder);
+  const targetFolder = options.uniqueName ? await nextVacantFolder(destination.resolvedRoot, name) : path.join(destination.resolvedRoot, slugifySkillName(name));
+  if (!options.uniqueName) await ensureVacant(targetFolder);
   await copyTree(sourceFolder, targetFolder);
   return targetFolder;
 }

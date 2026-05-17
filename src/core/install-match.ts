@@ -1,4 +1,3 @@
-import path from "node:path";
 import type { HubSkill, SkillRecord } from "./model";
 import { slugifySkillName } from "./names";
 
@@ -12,19 +11,28 @@ function addKey(keys: Set<string>, value: unknown) {
   if (key) keys.add(key);
 }
 
-export function keysForHubSkill(skill: Pick<HubSkill, "name" | "slug" | "id">) {
+function metadataValue(skill: SkillRecord, keys: string[]) {
+  for (const key of keys) {
+    const value = skill.metadata[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+function urlContainsSlug(value: unknown, slug: string) {
+  return typeof value === "string" && !!slug && value.toLowerCase().includes(slug.toLowerCase());
+}
+
+export function keysForHubSkill(skill: Pick<HubSkill, "slug" | "id">) {
   const keys = new Set<string>();
   addKey(keys, skill.slug);
-  addKey(keys, skill.name);
   addKey(keys, skill.id);
   return keys;
 }
 
 export function keysForLocalSkill(skill: SkillRecord) {
   const keys = new Set<string>();
-  addKey(keys, skill.title);
-  addKey(keys, skill.metadata.name);
-  addKey(keys, path.basename(skill.folderPath));
+  addKey(keys, metadataValue(skill, ["slug", "skillhubSlug", "skillHubSlug", "hubSlug"]));
   return keys;
 }
 
@@ -32,6 +40,8 @@ export function findInstalledSkill(hubSkill: Pick<HubSkill, "name" | "slug" | "i
   const hubKeys = keysForHubSkill(hubSkill);
   return localSkills.find((skill) => {
     for (const key of keysForLocalSkill(skill)) if (hubKeys.has(key)) return true;
+    const hubSlug = normalizeSkillKey(hubSkill.slug || hubSkill.id);
+    if (urlContainsSlug(skill.metadata.homepage, hubSlug) || urlContainsSlug(skill.metadata.url, hubSlug)) return true;
     return false;
   });
 }

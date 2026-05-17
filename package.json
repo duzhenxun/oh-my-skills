@@ -1,6 +1,6 @@
 {
   "name": "oh-my-skills",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Local dashboard and CLI for managing AI agent skills across tools, projects, SkillHub, and Git repositories.",
   "type": "module",
   "bin": {
