@@ -7,6 +7,7 @@ import { createRequire } from "node:module";
 import net from "node:net";
 import os from "node:os";
 import path from "node:path";
+import readline from "node:readline/promises";
 import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
@@ -15,6 +16,15 @@ const nextBin = require.resolve("next/dist/bin/next");
 const stateDir = path.join(os.homedir(), ".oh-my-skills");
 const stateFile = path.join(stateDir, "server.json");
 const defaultPort = process.env.PORT || "2525";
+const packageName = "oh-my-skills";
+const relaunchEnvKey = "OH_MY_SKILLS_UPGRADE_RELAUNCHED";
+const currentVersion = (() => {
+  try {
+    return String(require("../package.json").version || "").trim();
+  } catch {
+    return "";
+  }
+})();
 
 const args = process.argv.slice(2);
 
@@ -206,6 +216,104 @@ function openBrowser(url) {
   spawn(command, commandArgs, { detached: true, stdio: "ignore" }).unref();
 }
 
+function compareVersions(left, right) {
+  const leftParts = String(left).split(".").map((part) => Number.parseInt(part, 10));
+  const rightParts = String(right).split(".").map((part) => Number.parseInt(part, 10));
+  const length = Math.max(leftParts.length, rightParts.length);
+  for (let index = 0; index < length; index += 1) {
+    const a = Number.isFinite(leftParts[index]) ? leftParts[index] : 0;
+    const b = Number.isFinite(rightParts[index]) ? rightParts[index] : 0;
+    if (a > b) return 1;
+    if (a < b) return -1;
+  }
+  return 0;
+}
+
+function isNpxExecution() {
+  const command = String(process.env.npm_command || "").toLowerCase();
+  const execPath = String(process.env.npm_execpath || "").toLowerCase();
+  const userAgent = String(process.env.npm_config_user_agent || "").toLowerCase();
+  const argvText = process.argv.join(" ").toLowerCase();
+  return command === "exec"
+    || execPath.includes("npx")
+    || argvText.includes(`${path.sep}_npx${path.sep}`.toLowerCase())
+    || userAgent.includes("npm/") && argvText.includes(`${path.sep}_npx${path.sep}`.toLowerCase());
+}
+
+function isDirectCliExecution() {
+  const entry = String(process.argv[1] || "").toLowerCase();
+  return entry.includes(`${path.sep}oms`)
+    || entry.includes(`${path.sep}oh-my-skills`)
+    || entry.endsWith(`${path.sep}bin${path.sep}oh-my-skills.mjs`);
+}
+
+async function fetchLatestVersion() {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 1500);
+  try {
+    const response = await fetch(`https://registry.npmjs.org/${packageName}/latest`, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+    if (!response.ok) return "";
+    const payload = await response.json().catch(() => null);
+    return typeof payload?.version === "string" ? payload.version.trim() : "";
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function confirmUpgrade(latestVersion) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) return false;
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    const answer = await rl.question(`发现 ${packageName} 有新版本可用 / A newer ${packageName} version is available (${currentVersion} -> ${latestVersion}). 现在升级并继续？ / Upgrade now and continue? [y/N] `);
+    return ["y", "yes"].includes(answer.trim().toLowerCase());
+  } finally {
+    rl.close();
+  }
+}
+
+function printUpgradeHint(latestVersion) {
+  console.log(`发现 ${packageName} 有新版本可用 / A newer ${packageName} version is available (${currentVersion} -> ${latestVersion}).`);
+  console.log(`请运行以下命令升级 / Upgrade with: npm i -g ${packageName}@latest`);
+}
+
+async function relaunchLatest() {
+  const command = process.platform === "win32" ? "npx.cmd" : "npx";
+  const child = spawn(command, ["-y", `${packageName}@latest`, ...args], {
+    stdio: "inherit",
+    env: { ...process.env, [relaunchEnvKey]: "1" },
+  });
+  const exitCode = await new Promise((resolve, reject) => {
+    child.once("error", reject);
+    child.once("exit", (code, signal) => {
+      if (signal) {
+        process.kill(process.pid, signal);
+        return;
+      }
+      resolve(code ?? 0);
+    });
+  });
+  process.exit(Number(exitCode));
+}
+
+async function maybeUpgradePrompt() {
+  if (process.env[relaunchEnvKey] === "1") return;
+  if (!currentVersion) return;
+  const latestVersion = await fetchLatestVersion();
+  if (!latestVersion || compareVersions(currentVersion, latestVersion) >= 0) return;
+  if (isNpxExecution()) {
+    const shouldUpgrade = await confirmUpgrade(latestVersion);
+    if (!shouldUpgrade) return;
+    await relaunchLatest();
+    return;
+  }
+  if (isDirectCliExecution()) printUpgradeHint(latestVersion);
+}
+
 async function startServer(options, daemon = false) {
   const port = await resolveStartPort(options);
   const childArgs = [nextBin, "start", "-p", port];
@@ -329,6 +437,8 @@ async function main() {
   const { positional, options } = parseOptions(args);
   const command = positional[0] || "start";
   const subcommand = positional[1] || "";
+
+  await maybeUpgradePrompt();
 
   if (options.help || command === "help") {
     console.log(help);
