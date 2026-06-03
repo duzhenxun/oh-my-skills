@@ -20,6 +20,8 @@ const copyTargets = [
   { key: "global-codex", label: "Codex Global" },
 ];
 
+const defaultSourceOrder = new Map(copyTargets.map((target, index) => [target.key, index]));
+
 const text = {
   zh: {
     total: "技能总数",
@@ -140,7 +142,16 @@ export default function HomePage() {
       current.count += 1;
       map.set(skill.locationKey, current);
     });
-    return [...map.entries()].map(([key, value]) => ({ key, ...value }));
+    return [...map.entries()]
+      .map(([key, value]) => ({ key, ...value }))
+      .sort((a, b) => {
+        const aDefaultRank = defaultSourceOrder.get(a.key);
+        const bDefaultRank = defaultSourceOrder.get(b.key);
+        if (aDefaultRank !== undefined && bDefaultRank !== undefined) return aDefaultRank - bDefaultRank;
+        if (aDefaultRank !== undefined) return -1;
+        if (bDefaultRank !== undefined) return 1;
+        return a.label.localeCompare(b.label);
+      });
   }, [searchedSkills]);
 
   const locationFilteredSkills = useMemo(() => location ? searchedSkills.filter((skill) => skill.locationKey === location) : searchedSkills, [searchedSkills, location]);
@@ -269,7 +280,7 @@ export default function HomePage() {
                 <p>{skill.summary || t.noDescription}</p>
               </Link>
               <div className="skill-card-footer">
-                <span>{skill.locationLabel}</span>
+                <span title={skill.locationLabel}>{skill.locationLabel}</span>
                 <button className={`switch ${skill.enabled ? "on" : ""}`} onClick={() => toggle(skill)} aria-label={t.toggle} />
               </div>
             </article>

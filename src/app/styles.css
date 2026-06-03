@@ -164,6 +164,12 @@ button:disabled { cursor: wait; opacity: 0.68; }
 .skill-row:nth-child(even) { background: var(--panel-soft); }
 .skill-row:hover { background: color-mix(in srgb, var(--blue-soft) 48%, var(--panel)); box-shadow: inset 4px 0 0 var(--blue); }
 .skill-row > .select-box { align-self: start; justify-self: center; margin-top: 12px; }
+.project-row { border-top: 1px solid var(--line); padding: 10px 0; }
+.project-row:first-of-type { border-top: 0; }
+.project-row-main { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.project-inline { min-width: 0; flex: 1; display: flex; align-items: center; gap: 12px; overflow: hidden; }
+.project-inline strong { flex-shrink: 0; font-size: 16px; line-height: 1.2; white-space: nowrap; }
+.project-path { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 14px; line-height: 1.4; }
 .select-box { width: 24px; height: 24px; position: relative; }
 .select-box input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .select-box span { display: block; width: 24px; height: 24px; border: 1.5px solid color-mix(in srgb, var(--muted) 70%, var(--line)); border-radius: 5px; background: var(--panel); transition: all 0.15s ease; }
@@ -209,8 +215,8 @@ body[data-skin="graphite"] .badge.neutral { color: #c2cad8; background: #273142;
 .skill-card-badges { display: flex; align-items: center; gap: 10px; padding-right: 38px; }
 .skill-card h3 { margin: 0; font-size: 21px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .skill-card p { margin: 0; color: var(--muted); line-height: 1.75; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden; }
-.skill-card-footer { min-height: 52px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 26px; }
-.skill-card-footer span { min-width: 0; color: var(--muted); font-size: 12px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.skill-card-footer { min-height: 52px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 26px; min-width: 0; }
+.skill-card-footer span { min-width: 0; flex: 1; color: var(--muted); font-size: 12px; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .card-select { position: absolute; top: 20px; right: 20px; z-index: 2; align-self: auto; justify-self: auto; }
 .empty-state { grid-column: 1 / -1; padding: 28px; color: var(--muted); }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -271,6 +277,11 @@ body[data-skin="graphite"] .hub-category.tone-black.active { color: #111827; }
 .modal { width: min(980px, 100%); max-height: 88vh; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 24px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.22); }
 .modal-section { padding: 34px; border-top: 1px solid var(--line); }
 .modal-actions { position: sticky; bottom: 0; background: color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 18px 34px; }
+.dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+.dir-item { border: 1px solid var(--line); border-radius: 16px; background: var(--panel-soft); color: var(--text); padding: 18px; text-align: left; box-shadow: 0 12px 30px rgba(23, 37, 54, 0.05); }
+.dir-item:hover { border-color: color-mix(in srgb, var(--blue) 46%, var(--line)); background: color-mix(in srgb, var(--blue-soft) 54%, var(--panel)); }
+.dir-item strong { display: block; font-size: 16px; }
+.dir-item .summary { margin-top: 8px; word-break: break-all; }
 .metric-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 4px; }
 .metric-row span { border: 1px solid var(--line); border-radius: 999px; background: var(--panel-soft); color: var(--muted); font-size: 13px; font-weight: 800; padding: 6px 10px; }
 .install-warning { margin: 18px 0 0; border: 1px solid #f3d2a5; border-radius: 14px; background: #fff8ec; color: #9b621f; padding: 12px 14px; line-height: 1.7; font-weight: 700; }

@@ -1,7 +1,7 @@
 import os from "node:os";
 import path from "node:path";
 
-export type AgentTool = "agents" | "codex" | "cursor" | "claude" | "opencode" | "trae" | "windsurf" | "cline" | "continue" | "roo";
+export type AgentTool = "agents" | "codex" | "cursor" | "claude" | "opencode" | "trae" | "windsurf" | "cline" | "continue" | "roo" | "custom";
 export type SkillScope = "global" | "project";
 
 export interface SkillLocation {

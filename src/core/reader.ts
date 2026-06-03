@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
 import { globalLocations, type AgentTool, type SkillLocation } from "./catalog";
-import { getTrackedProjects } from "./workspace-store";
+import { getEnabledGlobalLocationRoots, getTrackedProjects } from "./workspace-store";
 import { categoryFor } from "./names";
 import type { SkillFileEntry, SkillRecord } from "./model";
 
@@ -43,6 +43,50 @@ async function fileExists(filePath: string) {
   } catch {
     return false;
   }
+}
+
+async function isSkillRoot(rootPath: string) {
+  let entries;
+  try {
+    entries = await fs.readdir(rootPath, { withFileTypes: true });
+  } catch {
+    return false;
+  }
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    if (await fileExists(path.join(rootPath, entry.name, "SKILL.md"))) return true;
+    if (await fileExists(path.join(rootPath, entry.name, "SKILL.md.disabled"))) return true;
+  }
+  return false;
+}
+
+const nestedSkillRootSkipNames = new Set(["node_modules", ".git", ".next", "dist", "build"]);
+
+async function discoverNestedSkillRoots(rootPath: string, maxDepth = 4) {
+  const found = new Set<string>();
+
+  async function walk(dir: string, depth: number) {
+    if (depth > maxDepth) return;
+    if (dir !== rootPath && await isSkillRoot(dir)) {
+      found.add(dir);
+      return;
+    }
+    let entries;
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (nestedSkillRootSkipNames.has(entry.name)) continue;
+      if (entry.name.startsWith(".") && !entry.name.startsWith(".agents") && !entry.name.startsWith(".codex") && !entry.name.startsWith(".cursor") && !entry.name.startsWith(".claude") && !entry.name.startsWith(".opencode") && !entry.name.startsWith(".trae")) continue;
+      await walk(path.join(dir, entry.name), depth + 1);
+    }
+  }
+
+  await walk(rootPath, 0);
+  return [...found].sort();
 }
 
 async function recordFromFile(filePath: string, folderPath: string, location: SkillLocation, enabled: boolean): Promise<SkillRecord | null> {
@@ -112,11 +156,44 @@ function projectLocations(projectPath: string, projectName: string): SkillLocati
   }));
 }
 
+function customProjectLocation(projectPath: string, projectName: string): SkillLocation {
+  return {
+    key: `project-custom-${projectPath}`,
+    label: `${projectName} (custom)`,
+    root: projectPath,
+    tool: "custom",
+    scope: "project",
+    format: "skill-dir",
+  };
+}
+
 export async function listSkills() {
-  const batches = await Promise.all(globalLocations.map(scanLocation));
+  const enabledGlobalRoots = new Set(await getEnabledGlobalLocationRoots());
+  const activeGlobalLocations = globalLocations.filter((location) => {
+    if (!location.root.includes("/.agents/skills") &&
+      !location.root.includes("/.codex/skills") &&
+      !location.root.includes("/.cursor/skills") &&
+      !location.root.includes("/.claude/skills") &&
+      !location.root.includes("/.opencode/skills") &&
+      !location.root.includes("/.trae/skills")) {
+      return true;
+    }
+    return enabledGlobalRoots.has(location.root);
+  });
+  const batches = await Promise.all(activeGlobalLocations.map(scanLocation));
   const projects = await getTrackedProjects();
   for (const project of projects) {
-    batches.push(...await Promise.all(projectLocations(project.path, project.name).map(scanLocation)));
+    if (await isSkillRoot(project.path)) {
+      batches.push(await scanLocation(customProjectLocation(project.path, project.name)));
+      continue;
+    }
+    const projectBatches = await Promise.all(projectLocations(project.path, project.name).map(scanLocation));
+    batches.push(...projectBatches);
+    if (projectBatches.some((items) => items.length > 0)) continue;
+    const nestedSkillRoots = await discoverNestedSkillRoots(project.path);
+    for (const skillRoot of nestedSkillRoots) {
+      batches.push(await scanLocation(customProjectLocation(skillRoot, `${project.name}:${path.basename(skillRoot)}`)));
+    }
   }
   const seen = new Set<string>();
   return batches.flat().filter((skill) => {
