@@ -212,23 +212,25 @@ oms -h
 ### Start, Stop, and Restart
 
 ```bash
-oms start --daemon --open
+oms start
 oms status --port 2525
 oms stop --port 2525
-oms restart --port 2525 --open
+oms restart --port 2525
 oms open --port 2525
 ```
 
 Notes:
 
 - `npx oh-my-skills@latest` starts the web dashboard by default.
-- `oms start` starts the service.
+- `oms` or `oms start` starts the service in the background and opens the browser after the service is ready.
 - `oms stop` stops the service.
 - `oms restart` restarts the service.
 - `oms status` checks whether the service responds.
 - `oms open` opens the browser.
-- `--daemon` runs the service in the background.
-- `--open` opens the browser after starting.
+- `--daemon` runs the service in the background (the default).
+- `--foreground` runs the service in the foreground for debugging.
+- The browser opens automatically after the service is ready.
+- `--no-open` skips opening the browser.
 - The default port is `2525`; when `--port` is omitted and `2525` is unavailable, the CLI uses the next free port.
 
 ### Skill API Commands

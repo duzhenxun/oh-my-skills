@@ -31,9 +31,9 @@ const args = process.argv.slice(2);
 const help = `Oh My Skills CLI
 
 Usage:
-  oh-my-skills [start] [--port <port>] [--daemon] [--open]
+  oh-my-skills [start] [--port <port>] [--daemon|--foreground] [--open]
   oh-my-skills stop [--port <port>]
-  oh-my-skills restart [--port <port>] [--open]
+  oh-my-skills restart [--port <port>] [--no-open]
   oh-my-skills status [--port <port>]
   oh-my-skills open [--port <port>]
   oh-my-skills --install
@@ -48,8 +48,10 @@ Server commands:
   status                Print whether the dashboard responds.
   open                  Open the dashboard URL in the default browser.
   --port, -p <port>     Port to use. Default: ${defaultPort}. Without an explicit port, the CLI falls back to the next free port.
-  --daemon              Run the dashboard in the background.
-  --open                Open the browser after starting.
+  --daemon              Run the dashboard in the background (default).
+  --foreground          Run the dashboard in the foreground.
+  --open                Open the browser after the service is ready (default).
+  --no-open             Do not open the browser after starting.
 
 Agent skill:
   --install             Install the bundled oh-my-skills agent skill to ~/.agents/skills/oh-my-skills.
@@ -74,7 +76,7 @@ Connection options:
 
 Examples:
   npx oh-my-skills@latest
-  npm i -g oh-my-skills && oms start --daemon --open
+  npm i -g oh-my-skills && oms start
   oms skills list --state enabled
   oms hub search --query wiki-skill
   oms hub install --slug wiki-skill --destination global-agents
@@ -164,6 +166,13 @@ function isProcessAlive(pid) {
   } catch {
     return false;
   }
+}
+
+function isOmsProcess(pid) {
+  if (!isProcessAlive(pid)) return false;
+  const result = spawnSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" });
+  const command = result.stdout || "";
+  return command.includes("next/dist/bin/next") && command.includes("start");
 }
 
 async function requestApi(method, apiPath, data, options = {}) {
@@ -314,27 +323,72 @@ async function maybeUpgradePrompt() {
   if (isDirectCliExecution()) printUpgradeHint(latestVersion);
 }
 
-async function startServer(options, daemon = false) {
-  const port = await resolveStartPort(options);
-  const childArgs = [nextBin, "start", "-p", port];
-  if (daemon) {
-    const child = spawn(process.execPath, childArgs, {
-      cwd: packageRoot,
-      detached: true,
-      stdio: "ignore",
-      env: { ...process.env, PORT: port },
-    });
-    child.unref();
-    writeState({ pid: child.pid, port, url: `http://localhost:${port}`, startedAt: new Date().toISOString() }).catch(() => undefined);
-    console.log(`Oh My Skills started: http://localhost:${port}`);
-    if (options.open) openBrowser(`http://localhost:${port}`);
+function shouldOpenBrowser(options) {
+  return options["no-open"] !== true && options.open !== false && options.open !== "false";
+}
+
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function waitForReady(port, pid, timeout = 15000) {
+  const deadline = Date.now() + timeout;
+  const url = `http://localhost:${port}/api/skills`;
+  while (Date.now() < deadline) {
+    if (pid && !isProcessAlive(pid)) return false;
+    try {
+      const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
+      if (response.ok) return true;
+    } catch {
+      // The server may still be starting.
+    }
+    await delay(200);
+  }
+  return false;
+}
+
+async function waitForExit(pid, timeout = 5000) {
+  const deadline = Date.now() + timeout;
+  while (isProcessAlive(pid) && Date.now() < deadline) await delay(100);
+  return !isProcessAlive(pid);
+}
+
+async function removeState() {
+  await fsp.rm(stateFile, { force: true }).catch(() => undefined);
+}
+
+async function startServer(options, daemon = true) {
+  const state = await readState();
+  const statePort = state?.port ? String(state.port) : "";
+  const existingPort = hasExplicitPort(options) ? getPort(options) : statePort;
+  if (state?.pid && existingPort && isProcessAlive(state.pid) && await waitForReady(existingPort, state.pid, 1000)) {
+    console.log(`Oh My Skills is already running: http://localhost:${existingPort}`);
+    if (shouldOpenBrowser(options)) openBrowser(`http://localhost:${existingPort}`);
     return;
   }
+  if (state) await removeState();
+
+  const port = existingPort || await resolveStartPort(options);
+  const childArgs = [nextBin, "start", "-p", port];
   const child = spawn(process.execPath, childArgs, {
     cwd: packageRoot,
-    stdio: "inherit",
+    detached: daemon,
+    stdio: daemon ? "ignore" : "inherit",
     env: { ...process.env, PORT: port },
   });
+  if (daemon) child.unref();
+
+  if (daemon) {
+    await writeState({ pid: child.pid, port, url: `http://localhost:${port}`, startedAt: new Date().toISOString() });
+    if (!await waitForReady(port, child.pid)) {
+      if (isProcessAlive(child.pid)) process.kill(child.pid, "SIGTERM");
+      await removeState();
+      throw new Error(`Oh My Skills failed to start on port ${port}.`);
+    }
+    console.log(`Oh My Skills started: http://localhost:${port}`);
+    if (shouldOpenBrowser(options)) openBrowser(`http://localhost:${port}`);
+    return;
+  }
   child.on("exit", (code, signal) => {
     if (signal) {
       process.kill(process.pid, signal);
@@ -346,16 +400,27 @@ async function startServer(options, daemon = false) {
 
 async function stopServer(options) {
   const state = await readState();
-  const port = getPort(options);
-  if (state?.pid && isProcessAlive(state.pid)) {
+  const explicitPort = hasExplicitPort(options);
+  const port = explicitPort ? getPort(options) : String(state?.port || getPort(options));
+  const stateMatchesPort = state && String(state.port) === port;
+
+  if (stateMatchesPort && state.pid && isOmsProcess(state.pid)) {
     process.kill(state.pid, "SIGTERM");
+    if (!await waitForExit(state.pid)) {
+      process.kill(state.pid, "SIGKILL");
+      await waitForExit(state.pid, 1000);
+    }
+    await removeState();
     console.log(`Stopped Oh My Skills process ${state.pid}.`);
     return;
   }
+  if (stateMatchesPort) await removeState();
+
   const result = spawnSync("lsof", ["-ti", `tcp:${port}`], { encoding: "utf8" });
   const pids = result.stdout.split(/\s+/).filter(Boolean);
   for (const pid of pids) {
     try {
+      if (!isOmsProcess(Number(pid))) continue;
       process.kill(Number(pid), "SIGTERM");
     } catch {
       // Already gone.
@@ -421,9 +486,9 @@ Common commands:
 
 - \`npx oh-my-skills@latest\`: install/run the dashboard.
 - \`npm i -g oh-my-skills\`: recommended global install.
-- \`oms start --daemon --open\`: start in the background and open the UI. Default port is 2525; if unavailable, the CLI uses the next free port.
+- \`oms\` or \`oms start\`: start in the background, wait until ready, and open the UI. Use \`--no-open\` to skip opening the browser or \`--foreground\` for foreground mode. Default port is 2525; if unavailable, the CLI uses the next free port.
 - \`oms stop --port 2525\`: stop the local service.
-- \`oms restart --port 2525 --open\`: restart the service.
+- \`oms restart --port 2525\`: restart the service and open the browser when ready.
 - \`oms status --port 2525\`: check the service.
 - \`oms skills list --json\`: list local skills.
 - \`oms hub search --query wiki-skill --json\`: search SkillHub.
@@ -445,7 +510,7 @@ async function main() {
     return;
   }
   if (options.install || command === "--install") return installAgentSkill();
-  if (command === "start") return startServer(options, Boolean(options.daemon));
+  if (command === "start") return startServer(options, options.foreground !== true);
   if (command === "stop") return stopServer(options);
   if (command === "restart") {
     await stopServer(options);

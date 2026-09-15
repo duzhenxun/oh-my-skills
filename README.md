@@ -212,23 +212,25 @@ oms -h
 ### 服务启动、关闭、重启
 
 ```bash
-oms start --daemon --open
+oms start
 oms status --port 2525
 oms stop --port 2525
-oms restart --port 2525 --open
+oms restart --port 2525
 oms open --port 2525
 ```
 
 说明：
 
 - `npx oh-my-skills@latest` 默认会启动网页面板。
-- `oms start` 启动服务。
+- `oms` 或 `oms start` 在后台启动服务，服务真正就绪后自动打开浏览器。
 - `oms stop` 停止服务。
 - `oms restart` 重启服务。
 - `oms status` 检查服务是否可用。
 - `oms open` 打开浏览器。
-- `--daemon` 表示后台运行。
-- `--open` 表示启动后自动打开浏览器。
+- `--daemon` 表示后台运行（默认行为）。
+- `--foreground` 表示在前台运行，方便调试。
+- 默认会在服务真正就绪后自动打开浏览器。
+- `--no-open` 表示启动后不打开浏览器。
 - 默认端口为 `2525`；没有传 `--port` 时，如果 `2525` 不可用，会自动使用下一个可用端口。
 
 ### Skill API 命令

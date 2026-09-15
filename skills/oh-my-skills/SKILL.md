@@ -11,13 +11,13 @@ Use the `oh-my-skills` or `oms` command to manage the local skill dashboard and 
 
 - `npx oh-my-skills@latest`: run the latest package directly.
 - `npm i -g oh-my-skills`: recommended global install.
-- `oh-my-skills` or `oms`: start the dashboard.
-- `oms start --daemon --open`: start in the background and open the UI. Default port is 2525; if unavailable, the CLI uses the next free port.
+- `oh-my-skills` or `oms`: start the dashboard in the background, wait until it is ready, and open the browser (default).
+- `oms start --no-open`: start in the background without opening the browser. Use `--foreground` to run in the foreground. Default port is 2525; if unavailable, the CLI uses the next free port.
 
 ## Service Control
 
 - `oms stop --port 2525`: stop the local service.
-- `oms restart --port 2525 --open`: restart the service.
+- `oms restart --port 2525`: restart the service and open the browser when ready.
 - `oms status --port 2525`: check whether the service is responding.
 - `oms open --port 2525`: open the dashboard.
 
