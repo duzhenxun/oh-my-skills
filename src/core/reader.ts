@@ -223,7 +223,7 @@ export function pathsForToggle(filePath: string, enabled: boolean) {
   return enabled ? { from: filePath, to: active } : { from: filePath, to: disabled };
 }
 
-export async function listSkillFiles(folderPath: string): Promise<SkillFileEntry[]> {
+async function listSkillFiles(folderPath: string): Promise<SkillFileEntry[]> {
   const files: SkillFileEntry[] = [];
   async function walk(dir: string) {
     let entries;
@@ -256,5 +256,3 @@ export async function getSkillFile(skillId: string, fileId: string) {
   const stat = await fs.stat(filePath);
   return { skill, file: { id: fileId, name: path.basename(filePath), relativePath, filePath, bytes: stat.size, updatedAt: stat.mtime.toISOString(), editable: isEditableFile(filePath) } satisfies SkillFileEntry, raw: await fs.readFile(filePath, "utf8") };
 }
-
-export { makeId, parseId };

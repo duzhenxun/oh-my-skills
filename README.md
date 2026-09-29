@@ -142,9 +142,6 @@ oh-my-skills --help
 ### 项目管理
 
 - 支持手动添加项目路径。
-- 支持扫描整台电脑，查找包含指定 skill 目录的项目。
-- 显示上次扫描时间、耗时、发现项目数量。
-- 可将发现的项目加入跟踪列表。
 - 加入跟踪后，首页会同时展示这些项目级 skills。
 
 ### 界面能力
@@ -263,7 +260,7 @@ oms copy --id <skill-id> --destination global-codex
 
 ```bash
 oms projects list --json
-oms projects list --discover --json
+oms projects list --json
 oms projects add --path /path/to/project
 oms projects remove --path /path/to/project
 ```
@@ -323,7 +320,7 @@ npm run typecheck
 
 ```bash
 npm run build
-npm run start -- -p 25251
+npm run start        # 默认 http://localhost:25251（可用 PORT 环境变量覆盖）
 ```
 
 ## Skill 格式约定

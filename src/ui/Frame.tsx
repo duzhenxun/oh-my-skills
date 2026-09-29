@@ -1,11 +1,7 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Check, ChevronDown, Download, Folder, Github, Grid2X2, Maximize, Minimize, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname } from "./router";
 import { LanguageContext, readStoredLanguage, type Language } from "./i18n";
-import packageInfo from "../../package.json";
 
 type Skin = "luma" | "paper" | "graphite" | "mint";
 
@@ -151,7 +147,7 @@ export function Frame({ children }: { children: React.ReactNode }) {
                 <Github size={20} />
                 <span>{t.openSource}</span>
               </span>
-              <span>{t.currentVersion}: v{packageInfo.version}</span>
+              <span>{t.currentVersion}: v{__APP_VERSION__}</span>
             </a>
           </div>
         </aside>

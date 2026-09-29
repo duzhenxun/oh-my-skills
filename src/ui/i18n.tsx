@@ -1,10 +1,8 @@
-"use client";
-
 import { createContext, useContext, useEffect, useState } from "react";
 
 export type Language = "zh" | "en";
 
-export const defaultLanguage: Language = "zh";
+const defaultLanguage: Language = "zh";
 
 export const LanguageContext = createContext<{ language: Language; setLanguage?: (language: Language) => void }>({
   language: defaultLanguage,

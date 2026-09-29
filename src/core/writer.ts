@@ -24,7 +24,7 @@ export async function removeSkill(skillId: string) {
   else await fs.rm(skill.filePath, { force: true });
 }
 
-export async function copyTree(source: string, target: string) {
+async function copyTree(source: string, target: string) {
   await fs.mkdir(target, { recursive: true });
   const entries = await fs.readdir(source, { withFileTypes: true });
   for (const entry of entries) {

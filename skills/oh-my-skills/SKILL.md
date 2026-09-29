@@ -42,7 +42,7 @@ Use the `oh-my-skills` or `oms` command to manage the local skill dashboard and 
 ## Project Operations
 
 - `oms projects list --json`: list tracked projects.
-- `oms projects list --discover --json`: scan for projects containing skill folders.
+- `oms projects list --json`: list tracked projects.
 - `oms projects add --path /path/to/project`: track a project.
 - `oms projects remove --path /path/to/project`: remove a tracked project.
 

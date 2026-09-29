@@ -23,20 +23,20 @@ function urlContainsSlug(value: unknown, slug: string) {
   return typeof value === "string" && !!slug && value.toLowerCase().includes(slug.toLowerCase());
 }
 
-export function keysForHubSkill(skill: Pick<HubSkill, "slug" | "id">) {
+function keysForHubSkill(skill: Pick<HubSkill, "slug" | "id">) {
   const keys = new Set<string>();
   addKey(keys, skill.slug);
   addKey(keys, skill.id);
   return keys;
 }
 
-export function keysForLocalSkill(skill: SkillRecord) {
+function keysForLocalSkill(skill: SkillRecord) {
   const keys = new Set<string>();
   addKey(keys, metadataValue(skill, ["slug", "skillhubSlug", "skillHubSlug", "hubSlug"]));
   return keys;
 }
 
-export function findInstalledSkill(hubSkill: Pick<HubSkill, "name" | "slug" | "id">, localSkills: SkillRecord[]) {
+function findInstalledSkill(hubSkill: Pick<HubSkill, "name" | "slug" | "id">, localSkills: SkillRecord[]) {
   const hubKeys = keysForHubSkill(hubSkill);
   return localSkills.find((skill) => {
     for (const key of keysForLocalSkill(skill)) if (hubKeys.has(key)) return true;

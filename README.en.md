@@ -142,9 +142,6 @@ Select multiple skills and run batch operations:
 ### Project Management
 
 - Add project paths manually.
-- Scan the whole computer for projects containing known skill folders.
-- Show the last scan time, duration, and number of discovered projects.
-- Add discovered projects to the tracked list.
 - Once tracked, project-level skills appear in the main skill list.
 
 ### Interface Features
@@ -263,7 +260,7 @@ oms copy --id <skill-id> --destination global-codex
 
 ```bash
 oms projects list --json
-oms projects list --discover --json
+oms projects list --json
 oms projects add --path /path/to/project
 oms projects remove --path /path/to/project
 ```
@@ -323,7 +320,7 @@ Start in production mode:
 
 ```bash
 npm run build
-npm run start -- -p 25251
+npm run start        # defaults to http://localhost:25251 (override with PORT)
 ```
 
 ## Skill Format

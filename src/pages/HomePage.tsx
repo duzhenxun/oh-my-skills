@@ -1,6 +1,4 @@
-"use client";
-
-import Link from "next/link";
+import { Link } from "@/ui/router";
 import { CheckCircle2, CircleOff, Grid2X2, Layers3, List, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Frame } from "@/ui/Frame";
@@ -93,7 +91,7 @@ const text = {
   },
 };
 
-export default function HomePage() {
+export function HomePage() {
   const language = useLanguage();
   const t = text[language];
   const [allSkills, setAllSkills] = useState<SkillRecord[]>([]);

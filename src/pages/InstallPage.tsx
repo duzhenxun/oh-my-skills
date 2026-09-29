@@ -1,7 +1,5 @@
-"use client";
-
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/ui/router";
 import { Frame } from "@/ui/Frame";
 import { useLanguage } from "@/ui/i18n";
 import type { HubSkill, SkillRecord } from "@/core/model";
@@ -37,7 +35,7 @@ const text = {
   },
 };
 
-export default function InstallPage() {
+export function InstallPage() {
   const language = useLanguage();
   const t = text[language];
   const [tab, setTab] = useState<"hub" | "create" | "repo">("hub");
@@ -194,7 +192,7 @@ export default function InstallPage() {
             {hubCategories.map((item) => <button key={item.key || "all"} type="button" className={`hub-category tone-${item.tone} ${category === item.key ? "active" : ""}`} onClick={() => selectCategory(item.key)} disabled={busyAction !== ""}><span>{language === "zh" ? item.zh : item.en}</span></button>)}
           </div>
         </section>
-        <section className="card install-results">{results.map((item) => <button key={item.id} className={`hub-result ${item.installed ? "is-installed" : ""}`} onClick={() => setSelected(item)}><div><div className="skill-title"><h3>{item.name}</h3><span className={`badge ${item.installed ? "green" : ""}`}>{item.installed ? t.installed : t.notInstalled}</span>{item.owner && <span className="badge">{t.author} {item.owner}</span>}{item.source && <span className="badge">{t.source} {item.source}</span>}{item.downloads !== undefined && <span className="badge">{t.downloads} {item.downloads}</span>}{item.stars !== undefined && <span className="badge">{t.stars} {item.stars}</span>}</div><p className="summary">{item.description || item.url}</p></div><span className="hub-result-action">{item.installed ? t.viewInstalled : t.viewInstall}</span></button>)}</section>
+        <section className="card install-results">{results.map((item, index) => <button key={`${item.id}-${index}`} className={`hub-result ${item.installed ? "is-installed" : ""}`} onClick={() => setSelected(item)}><div><div className="skill-title"><h3>{item.name}</h3><span className={`badge ${item.installed ? "green" : ""}`}>{item.installed ? t.installed : t.notInstalled}</span>{item.owner && <span className="badge">{t.author} {item.owner}</span>}{item.source && <span className="badge">{t.source} {item.source}</span>}{item.downloads !== undefined && <span className="badge">{t.downloads} {item.downloads}</span>}{item.stars !== undefined && <span className="badge">{t.stars} {item.stars}</span>}</div><p className="summary">{item.description || item.url}</p></div><span className="hub-result-action">{item.installed ? t.viewInstalled : t.viewInstall}</span></button>)}</section>
         {results.length > 0 && <div className="hub-load-state">{busyAction === "load-more" ? t.loadingMore : hubHasMore ? "" : t.noMore}</div>}
       </>}
       {tab === "repo" && <section className="card" style={{ padding: 28 }}><div className="row"><input className="search" value={repoUrl} onChange={(event) => setRepoUrl(event.target.value)} placeholder={t.repoPlaceholder} /><button className="btn" onClick={inspectRepo} disabled={busyAction !== ""}>{busyAction === "repo" ? t.processing : t.fetchList}</button></div><DestinationPicker value={destination} onChange={setDestination} label={t.destination} /><div className="segmented" style={{ marginTop: 18 }}>{repoSkills.map((skill) => <button key={skill} className="pill" onClick={() => installRepoSkill(skill)}>{skill}</button>)}</div></section>}

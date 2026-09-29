@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const nextBin = require.resolve("next/dist/bin/next");
+const serverEntry = path.join(packageRoot, "server", "main.mjs");
 const stateDir = path.join(os.homedir(), ".oh-my-skills");
 const stateFile = path.join(stateDir, "server.json");
 const defaultPort = process.env.PORT || "25251";
@@ -66,7 +66,7 @@ API/automation commands:
   install manual --destination <key> --name <name> [--raw <text> | --file <path>]
   install repo --repo-url <url> [--skill-name <name> --destination <key>]
   copy --id <id> --destination <key>
-  projects list [--discover] [--json]
+  projects list [--json]
   projects add --path <path>
   projects remove --path <path>
   api <GET|POST|PUT|DELETE> <path> [--data <json>] [--json]
@@ -172,7 +172,7 @@ function isOmsProcess(pid) {
   if (!isProcessAlive(pid)) return false;
   const result = spawnSync("ps", ["-p", String(pid), "-o", "command="], { encoding: "utf8" });
   const command = result.stdout || "";
-  return command.includes("next/dist/bin/next") && command.includes("start");
+  return command.includes(serverEntry) || command.includes(path.join("server", "main.mjs"));
 }
 
 async function requestApi(method, apiPath, data, options = {}) {
@@ -209,11 +209,9 @@ function printPayload(payload, asJson = false) {
     }
     return;
   }
-  if (Array.isArray(payload?.tracked) || Array.isArray(payload?.discovered)) {
-    console.log(`Tracked: ${payload.tracked?.length || 0}`);
-    for (const item of payload.tracked || []) console.log(`  ${item.name}: ${item.path}`);
-    console.log(`Discovered: ${payload.discovered?.length || 0}`);
-    for (const item of payload.discovered || []) console.log(`  ${item}`);
+  if (Array.isArray(payload?.tracked)) {
+    console.log(`Tracked: ${payload.tracked.length}`);
+    for (const item of payload.tracked) console.log(`  ${item.name}: ${item.path}`);
     return;
   }
   console.log(typeof payload === "string" ? payload : JSON.stringify(payload, null, 2));
@@ -369,7 +367,7 @@ async function startServer(options, daemon = true) {
   if (state) await removeState();
 
   const port = existingPort || await resolveStartPort(options);
-  const childArgs = [nextBin, "start", "-p", port];
+  const childArgs = [serverEntry];
   const child = spawn(process.execPath, childArgs, {
     cwd: packageRoot,
     detached: daemon,
@@ -461,7 +459,7 @@ async function runApiCommand(command, subcommand, options, positional) {
   }
   if (command === "install" && subcommand === "repo") return printPayload(await requestApi("POST", "/api/install/repo", { repoUrl: options["repo-url"], skillName: options["skill-name"], destination: options.destination }, options), Boolean(options.json));
   if (command === "copy") return printPayload(await requestApi("POST", "/api/install/copy", { id: options.id, destination: options.destination }, options), Boolean(options.json));
-  if (command === "projects" && subcommand === "list") return printPayload(await requestApi("GET", `/api/projects${options.discover ? "?discover=1" : ""}`, undefined, options), Boolean(options.json));
+  if (command === "projects" && subcommand === "list") return printPayload(await requestApi("GET", "/api/projects", undefined, options), Boolean(options.json));
   if (command === "projects" && subcommand === "add") return printPayload(await requestApi("POST", "/api/projects", { path: options.path }, options), Boolean(options.json));
   if (command === "projects" && subcommand === "remove") return printPayload(await requestApi("DELETE", "/api/projects", { path: options.path }, options), Boolean(options.json));
   if (command === "api") {
@@ -493,7 +491,7 @@ Common commands:
 - \`oms skills list --json\`: list local skills.
 - \`oms hub search --query wiki-skill --json\`: search SkillHub.
 - \`oms hub install --slug wiki-skill --destination global-agents\`: install from SkillHub.
-- \`oms projects list --discover --json\`: scan projects.
+- \`oms projects list --json\`: list tracked projects.
 
 When the user asks to install the oh-my-skills agent skill, run \`oh-my-skills --install\`. This installs this skill to \`~/.agents/skills/oh-my-skills/SKILL.md\`.
 `;

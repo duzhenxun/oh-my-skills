@@ -1,9 +1,4 @@
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.webp
-*.ico
 docs
-.next/cache
 src
+scripts
+*.tgz

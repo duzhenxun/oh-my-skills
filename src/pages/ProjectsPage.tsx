@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Frame } from "@/ui/Frame";
 import { useLanguage } from "@/ui/i18n";
@@ -45,7 +43,7 @@ const text = {
   },
 };
 
-export default function ProjectsPage() {
+export function ProjectsPage() {
   const language = useLanguage();
   const t = text[language];
   const [tracked, setTracked] = useState<ProjectItem[]>([]);
