@@ -1,6 +1,6 @@
 {
   "name": "oh-my-skills",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Local dashboard and CLI for managing AI agent skills across tools, projects, SkillHub, and Git repositories.",
   "type": "module",
   "bin": {
@@ -18,9 +18,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "dev": "next dev -p 2525",
+    "dev": "next dev -p 25251",
     "build": "next build",
-    "start": "next start -p 2525",
+    "start": "next start -p 25251",
     "serve": "node bin/oh-my-skills.mjs start",
     "stop": "node bin/oh-my-skills.mjs stop",
     "restart": "node bin/oh-my-skills.mjs restart",

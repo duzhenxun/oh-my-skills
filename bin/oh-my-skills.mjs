@@ -15,7 +15,7 @@ const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const nextBin = require.resolve("next/dist/bin/next");
 const stateDir = path.join(os.homedir(), ".oh-my-skills");
 const stateFile = path.join(stateDir, "server.json");
-const defaultPort = process.env.PORT || "2525";
+const defaultPort = process.env.PORT || "25251";
 const packageName = "oh-my-skills";
 const relaunchEnvKey = "OH_MY_SKILLS_UPGRADE_RELAUNCHED";
 const currentVersion = (() => {
@@ -486,10 +486,10 @@ Common commands:
 
 - \`npx oh-my-skills@latest\`: install/run the dashboard.
 - \`npm i -g oh-my-skills\`: recommended global install.
-- \`oms\` or \`oms start\`: start in the background, wait until ready, and open the UI. Use \`--no-open\` to skip opening the browser or \`--foreground\` for foreground mode. Default port is 2525; if unavailable, the CLI uses the next free port.
-- \`oms stop --port 2525\`: stop the local service.
-- \`oms restart --port 2525\`: restart the service and open the browser when ready.
-- \`oms status --port 2525\`: check the service.
+- \`oms\` or \`oms start\`: start in the background, wait until ready, and open the UI. Use \`--no-open\` to skip opening the browser or \`--foreground\` for foreground mode. Default port is 25251; if unavailable, the CLI uses the next free port.
+- \`oms stop --port 25251\`: stop the local service.
+- \`oms restart --port 25251\`: restart the service and open the browser when ready.
+- \`oms status --port 25251\`: check the service.
 - \`oms skills list --json\`: list local skills.
 - \`oms hub search --query wiki-skill --json\`: search SkillHub.
 - \`oms hub install --slug wiki-skill --destination global-agents\`: install from SkillHub.

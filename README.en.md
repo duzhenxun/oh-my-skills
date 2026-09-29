@@ -13,7 +13,7 @@ oms --help
 oh-my-skills --help
 ```
 
-By default, the CLI tries port `2525` first. `oms` is the short alias for `oh-my-skills`.
+By default, the CLI tries port `25251` first. `oms` is the short alias for `oh-my-skills`.
 
 ## Product Tour
 
@@ -181,16 +181,16 @@ oms
 To use a custom port:
 
 ```bash
-oh-my-skills --port 2526
+oh-my-skills --port 25252
 ```
 
 Then open:
 
 ```text
-http://localhost:2525
+http://localhost:25251
 ```
 
-The default port is `2525`. If no explicit `--port` is provided and `2525` is already in use, the CLI automatically tries the next available port starting from `2526`. If you pass `--port`, that exact port is used.
+The default port is `25251`. If no explicit `--port` is provided and `25251` is already in use, the CLI automatically tries the next available port starting from `25252`. If you pass `--port`, that exact port is used.
 
 ## CLI and Agent Usage
 
@@ -213,10 +213,10 @@ oms -h
 
 ```bash
 oms start
-oms status --port 2525
-oms stop --port 2525
-oms restart --port 2525
-oms open --port 2525
+oms status --port 25251
+oms stop --port 25251
+oms restart --port 25251
+oms open --port 25251
 ```
 
 Notes:
@@ -231,7 +231,7 @@ Notes:
 - `--foreground` runs the service in the foreground for debugging.
 - The browser opens automatically after the service is ready.
 - `--no-open` skips opening the browser.
-- The default port is `2525`; when `--port` is omitted and `2525` is unavailable, the CLI uses the next free port.
+- The default port is `25251`; when `--port` is omitted and `25251` is unavailable, the CLI uses the next free port.
 
 ### Skill API Commands
 
@@ -323,7 +323,7 @@ Start in production mode:
 
 ```bash
 npm run build
-npm run start -- -p 2525
+npm run start -- -p 25251
 ```
 
 ## Skill Format

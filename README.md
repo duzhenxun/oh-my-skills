@@ -13,7 +13,7 @@ oms --help
 oh-my-skills --help
 ```
 
-默认会优先启动在 `2525` 端口，`oms` 是 `oh-my-skills` 的简写命令。
+默认会优先启动在 `25251` 端口，`oms` 是 `oh-my-skills` 的简写命令。
 
 ## 产品功能展示
 
@@ -181,16 +181,16 @@ oms
 需要自定义端口时：
 
 ```bash
-oh-my-skills --port 2526
+oh-my-skills --port 25252
 ```
 
 启动后在浏览器打开：
 
 ```text
-http://localhost:2525
+http://localhost:25251
 ```
 
-默认端口是 `2525`。如果没有显式传入 `--port`，且 `2525` 已被占用，CLI 会自动从 `2526` 开始继续寻找可用端口；如果你显式传入 `--port`，则会按指定端口启动。
+默认端口是 `25251`。如果没有显式传入 `--port`，且 `25251` 已被占用，CLI 会自动从 `25252` 开始继续寻找可用端口；如果你显式传入 `--port`，则会按指定端口启动。
 
 ## CLI 与 Agent 调用
 
@@ -213,10 +213,10 @@ oms -h
 
 ```bash
 oms start
-oms status --port 2525
-oms stop --port 2525
-oms restart --port 2525
-oms open --port 2525
+oms status --port 25251
+oms stop --port 25251
+oms restart --port 25251
+oms open --port 25251
 ```
 
 说明：
@@ -231,7 +231,7 @@ oms open --port 2525
 - `--foreground` 表示在前台运行，方便调试。
 - 默认会在服务真正就绪后自动打开浏览器。
 - `--no-open` 表示启动后不打开浏览器。
-- 默认端口为 `2525`；没有传 `--port` 时，如果 `2525` 不可用，会自动使用下一个可用端口。
+- 默认端口为 `25251`；没有传 `--port` 时，如果 `25251` 不可用，会自动使用下一个可用端口。
 
 ### Skill API 命令
 
@@ -323,7 +323,7 @@ npm run typecheck
 
 ```bash
 npm run build
-npm run start -- -p 2525
+npm run start -- -p 25251
 ```
 
 ## Skill 格式约定
